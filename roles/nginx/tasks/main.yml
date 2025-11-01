@@ -1,0 +1,70 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for roles/nginx
+- name: Install NGINX
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create root directories for each member
+  file:
+    path: "{{ nginx_root }}/{{ member.name }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0755
+  loop: "{{ members }}"
+  loop_control:
+    loop_var: member
+  become: yes    
+
+- name: Copy index.html for each member
+  template:
+    src: index.html.j2
+    dest: "{{ nginx_root }}/{{ member.name }}/index.html"
+    owner: www-data
+    group: www-data
+    mode: 0644
+  loop: "{{ members }}"
+  loop_control:
+    loop_var: member
+  become: yes
+
+- name: Create NGINX server block for each member
+  copy:
+    dest: /etc/nginx/sites-available/{{ member.name }}
+    content: |
+      server {
+          listen 80;
+          server_name {{ member.domain }};
+          root {{ nginx_root }}/{{ member.name }};
+          index index.html;
+      }
+  loop: "{{ members }}"
+  loop_control:
+    loop_var: member
+  become: yes
+
+- name: Enable NGINX sites
+  file:
+    src: /etc/nginx/sites-available/{{ item.name }}
+    dest: /etc/nginx/sites-enabled/{{ item.name }}
+    state: link
+  loop: "{{ members }}"
+  loop_control:
+    loop_var: item
+  become: yes
+
+- name: Remove default NGINX site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  become: yes
+
+- name: Restart NGINX
+  service:
+    name: nginx
+    state: restarted
+  become: yes

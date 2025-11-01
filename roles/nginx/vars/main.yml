@@ -1,0 +1,13 @@
+#SPDX-License-Identifier: MIT-0
+---
+# vars file for roles/nginx
+ team_members:
+  - name: Pooja
+    group: Team-C
+    domain: pooja.teamc.com
+  - name: Shreyas
+    group: Team-C
+    domain: shreyas.teamc.com
+  - name: Surabhi
+    group: Team-C
+    domain: surabhi.teamc.com

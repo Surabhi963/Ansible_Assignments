@@ -1,0 +1,14 @@
+{% for member in team_members %}
+server {
+    listen 80;
+    server_name {{ member.domain }};
+
+    root /var/www/{{ member.name | lower }};
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+}
+{% endfor %}
+
